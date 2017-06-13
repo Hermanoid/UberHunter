@@ -1,0 +1,9 @@
+{
+  "name": "uber-hunter",
+  "version": "0.0.0",
+  "description": "UberHunter",
+  "main": "app.js",
+  "author": {
+    "name": "Lucas Niewohner"
+  }
+}
