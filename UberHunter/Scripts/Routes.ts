@@ -1,6 +1,6 @@
-﻿/// <reference path="typings/node/node.d.ts" />
-import { Character } from "./Characters";
+﻿import { Character } from "./Characters";
 import fs = require("fs");
+
 //class Greeter {
 //    element: HTMLElement;
 //    span: HTMLElement;
@@ -31,60 +31,75 @@ import fs = require("fs");
 //};
 
 
-
-enum RouteType {
-    Talk, Battle, Store, Info, Ending
+export enum RouteType {
+    Start, Transit, Talk, Battle, Store, Info, Ending
 }
 
-abstract class Route {
+
+export abstract class Route {
     abstract routeType: RouteType;
-    routes: { [id: string]: Route };
-    templatePath: string;
-    constructor(routes: { [id: string]: Route }, templatePath: string) {
+    abstract templatePath: string;
+    id: string;
+    routes: { [name: string]: Route };
+    constructor(routes: { [name: string]: Route }) {
         this.routes = routes;
-        this.templatePath =
-            fs.exists(templatePath) ? templatePath :
-                fs.exists("../" + templatePath) ? "../" + templatePath :
-                    fs.exists("../Templates" + templatePath) ? "../Templates" + templatePath :
-                        "../Templates/Public" + templatePath;
-        if (!fs.exists(this.templatePath)) { throw "TemplatePath not vaild.  This is an internal error caused by a Route type not providing an existing template.  If this occurs in production, an alien ship probably crashed into an essential server somewhere." };
+        //If you're wondering how to name your template, use the first prefix (aka, the path should be relative to the Templates Folder)
+        let prefixes = ["./Templates/","./","","./Templates/Public/"];
+        let index = 0;
+        let result = "";
+        while (true) {
+            if (index >= prefixes.length) {
+                throw "no prefixes were found that contained the specified templatePath.  If you see this error in a non-development version, the apocolypse has probably occurred";
+            }
+            result = prefixes[index] + this.templatePath;
+            if (fs.existsSync(result)) {
+                break;
+            } else {
+                index++;
+            }
+        }
+        this.templatePath = result;
     }
-    isValid(id: string) : boolean {
-        return id in this.routes;
+    isValid(name: string) : boolean {
+        return name in this.routes;
     }
-    switchTo(id: string, callback: (err: NodeJs.ErrnoException, html: string) => void): void {
-        if (!(id in this.routes)) {
-            throw "id (" + id + ") does not exist in the current context";
+    getRoute(name: string, callback: (err: Error, html: string) => void): void {
+        if (!(name in this.routes)) {
+            throw "route name (" + name + ") does not exist in the current context";
         } else {
-            let route = this.routes[id];
+            let route = this.routes[name];
             fs.readFile(route.templatePath, function (err, data) {
                 callback(err, data ? this.buildHtml(data) : null);
             });
         }
     }
     abstract buildHTML(templateHtml: string) : string;
-    abstract start();
 }
 
-class Talk extends Route {
+export class Talk extends Route {
     routeType: RouteType = RouteType.Talk;
+    templatePath: string = "Talk.html";
     speaker: Character;
-    constructor(speaker: Character, routes: { [id: string]: Route }) {
-        super(routes, "Talk.html", );
+    constructor(speaker: Character, routes: { [name: string]: Route }) {
+        super(routes);
         this.speaker = speaker;
     }
     buildHTML(templateHtml: string) {
         return templateHtml
             .replace("##SPEAKERNAME##", this.speaker.name);
     }
-    start() {
-        let heading = document.getElementById("heading");
-        heading.innerHTML = "Yo!";
+}
+
+export class Intro extends Route {
+    templatePath: string = "Intro.html";
+    routeType = RouteType.Start;
+    constructor(routes: { [name: string]: Route }) {
+        super(routes);
+
+    }
+    buildHTML(templateHtml: string): string {
+        //There are no data-specific activitites here - there is only one intro, so whatever's in the template works great.
+        return templateHtml;
     }
 }
-
-export {
-    Route, Talk
-}
-
 

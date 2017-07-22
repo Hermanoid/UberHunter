@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var CharacterState;
 (function (CharacterState) {
     CharacterState[CharacterState["Normal"] = 0] = "Normal";
@@ -14,6 +16,7 @@ var CharacterState;
     CharacterState[CharacterState["Fearful"] = 11] = "Fearful";
     CharacterState[CharacterState["Amazed"] = 12] = "Amazed";
 })(CharacterState || (CharacterState = {}));
+exports.CharacterState = CharacterState;
 var Character = (function () {
     function Character(name, picUrl, startingState) {
         this.name = name;
@@ -22,4 +25,5 @@ var Character = (function () {
     }
     return Character;
 }());
+exports.Character = Character;
 //# sourceMappingURL=Characters.js.map
